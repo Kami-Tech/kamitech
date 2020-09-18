@@ -1,0 +1,39 @@
+version: '3'
+services:
+  web:
+    build:
+      context: .
+    env_file:
+      - ./environments/db.env
+    container_name: kamitech_web
+    environment:
+      TZ: Asia/Tokyo
+    command: bundle exec puma -C config/puma.rb
+    volumes:
+      - .:/KamitechApp
+      - ./public:/KamitechApp/public
+      - ./tmp:/KamitechApp/tmp
+      - ./log:/KamitechApp/log
+    depends_on:
+      - db
+  db:
+    image: postgres:12.1
+    env_file:
+      - ./environments/db.env
+    container_name: kamitech_db
+    environment:
+      TZ: Asia/Tokyo
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+  nginx:
+    build: containers/nginx
+    container_name: kamitech_nginx
+    environment:
+      TZ: Asia/Tokyo
+    volumes:
+      - ./public:/KamitechApp/public
+      - ./tmp:/KamitechApp/tmp
+    ports:
+      - 80:80
+    depends_on:
+      - web
